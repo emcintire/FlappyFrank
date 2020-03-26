@@ -300,7 +300,6 @@ def run():
 
         for can in cans:
             if can.collide(frank):
-                draw_win(win, frank, cans, base, score) #removes score text 
                 end_screen()
                 
             if can.x + can.can_top.get_width() < 0:
@@ -320,7 +319,6 @@ def run():
             cans.remove(i)
 
         if frank.y + frank.img.get_height() >= 710:
-            draw_win(win, frank, cans, base, score)
             end_screen()
 
         if frank.y + frank.img.get_height() <= -6969:
