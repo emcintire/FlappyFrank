@@ -2,41 +2,131 @@ import pygame
 import time
 import os
 import random as r
+
 pygame.font.init()
 
 WIN_W = 550
 WIN_H = 800
 win = pygame.display.set_mode((WIN_W, WIN_H))
 
+#load all images
 frank_imgs = [pygame.transform.scale((pygame.image.load(os.path.join('imgs', 'frank1.png'))), (100, 100)), 
              pygame.transform.scale((pygame.image.load(os.path.join('imgs', 'frank2.png'))), (100, 100)),
              pygame.transform.scale((pygame.image.load(os.path.join('imgs', 'frank3.png'))), (100, 100))]
 back_img = pygame.transform.scale((pygame.image.load(os.path.join('imgs', 'background.png'))), (600, 800))
 can_img = pygame.transform.scale((pygame.image.load(os.path.join('imgs', 'can.png'))), (150, 600))
 base_img = pygame.transform.scale((pygame.image.load(os.path.join('imgs', 'base.png'))), (600, 100))
-frank_start_img = pygame.transform.scale((pygame.image.load(os.path.join('imgs', 'frank1.png'))), (175, 175))
+frank_start_img = pygame.transform.scale((pygame.image.load(os.path.join('imgs', 'frank1.png'))), (250, 250))
+play_img = pygame.transform.scale((pygame.image.load(os.path.join('imgs', 'play.png'))), (150, 100))
+play_img2 = pygame.transform.scale((pygame.image.load(os.path.join('imgs', 'play2.png'))), (150, 100))
 
-font = pygame.font.SysFont('comicsans', 50)
+#load fonts
+font = pygame.font.Font('fonts/lucida.ttf', 40)
+font2 = pygame.font.Font('fonts/lucida.ttf', 70)
+font3 = pygame.font.Font('fonts/lucida.ttf', 20)
+font4 = pygame.font.Font('fonts/lucida.ttf', 30)
+
+
+global best
+best = 0
 
 def start_screen():
+    '''Splash screen before game starts'''
+
     start = True 
 
     while start:
         clock.tick(30)
+
+        #draw all images and text
         win.blit(back_img, (0,0))
         base = Base(700)
         base.draw(win)
-        win.blit(frank_start_img, (190, 170))
+        win.blit(frank_start_img, (150, 190))
+        win.blit(play_img, (195, 500))
+        text = font2.render('"Flappy Frank"', 1, (0,0,0))
+        text2 = font3.render('The Gang Plays', 1, (0,0,0))
+        win.blit(text, (25, 30))
+        win.blit(text2, (195, 10))
+
+        #for interactive buttons
+        mouse = pygame.mouse.get_pos()
+
+        if 355 > mouse[0] > 195 and 600 > mouse[1] > 500:    #210 60 600 500 for two buttons
+            win.blit(play_img2, (195, 500))                 #60 500
+        else:
+            win.blit(play_img, (195, 500))
+
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 start = False
                 pygame.quit()
                 quit()
             
-            if event.type == pygame.MOUSEBUTTONDOWN:
+            if (event.type == pygame.MOUSEBUTTONDOWN and 
+                355 > mouse[0] > 195 and 600 > mouse[1] > 500):
                 start = False
+
+        pygame.display.update()
+
+def end_screen():
+    start = True 
+
+    while start:
+        clock.tick(30)
+
+        #draw all images and text
         
+        text = font2.render('Game Over', 1, (0,0,0))
+        text2 = font4.render('Score', 1, (0,0,0))
+        text2_1 = font.render(str(score), 1, (255,255,255))
+        text3 = font4.render('Best', 1, (0,0,0))
+        text3_1 = font.render(str(best), 1, (255,255,255))
+        text4 = font4.render('Medal', 1, (0,0,0))
+        win.blit(back_img, (0,0))
+        win.blit(play_img, (195, 500))   #60 for two buttons
+        win.blit(text, (75, 40))
+        win.blit(text2, (350, 200))
+        win.blit(text3, (350, 300))
+        win.blit(text2_1, (350, 240))
+        win.blit(text3_1, (350, 340))
+        win.blit(text4, (100, 200))
+        
+        base = Base(700)
+        base.draw(win)
+        #for interactive buttons
+        mouse = pygame.mouse.get_pos()
+
+        if 355 > mouse[0] > 195 and 600 > mouse[1] > 500:    #210 60 600 500 for two buttons
+            win.blit(play_img2, (195, 500))                 #60 500
+        else:
+            win.blit(play_img, (195, 500))
+
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                start = False
+                pygame.quit()
+                quit()
+            
+            if (event.type == pygame.MOUSEBUTTONDOWN and 
+                355 > mouse[0] > 195 and 600 > mouse[1] > 500):
+                start = False
+                run()
+
+        pygame.display.update()    
+
+def easter_egg():
+    start = True 
+
+    while start:
+        clock.tick(30)
+
+        text = font2.render('Game Over', 1, (0,0,0))
+        win.blit(text, (195, 10))
+
 class Frank:
+    '''Main character class'''
+
     IMGS = frank_imgs
     max_rotation = 25
     rotation_vel = 20
@@ -53,11 +143,15 @@ class Frank:
         self.img = self.IMGS[0]
 
     def jump(self):
+        '''Moves the character up when activated'''
+
         self.vel = -10.5
         self.tick_count = 0
         self.height = self.y
 
     def move(self):
+        '''Defines the gravity for the character'''
+
         self.tick_count += 1
         dis = self.vel*(self.tick_count) + 0.5*(3)*(self.tick_count)**2
         
@@ -76,6 +170,8 @@ class Frank:
                 self.tilt -= self.rotation_vel
     
     def draw(self, win):
+        '''Function for drawing the character'''
+
         self.img_count += 1
 
         if self.img_count <= self.animation_time:
@@ -100,7 +196,9 @@ class Frank:
         return pygame.mask.from_surface(self.img)
 
 class Trashcan:
-    GAP = 250
+    '''Class for the obstacles'''
+
+    GAP = 230
     VEL = 5
 
     def __init__(self,x):
@@ -177,14 +275,15 @@ def draw_win(win,frank, trashcans, base, score):
     for can in trashcans:
         can.draw(win)
 
+    base.draw(win)
     text = font.render('Score: ' + str(score), 1, (255,255,255))
     win.blit(text, (WIN_W - 10 - text.get_width(), 10))
-
-    base.draw(win)
-    frank.draw(win)
+    frank.draw(win)    
     pygame.display.update()
 
 def run():
+    global score
+    global best
     score = 0
     run = True
 
@@ -201,10 +300,9 @@ def run():
 
         for can in cans:
             if can.collide(frank):
-                pygame.quit()
-                quit()
-                break
-
+                draw_win(win, frank, cans, base, score) #removes score text 
+                end_screen()
+                
             if can.x + can.can_top.get_width() < 0:
                 rem.append(can)
 
@@ -222,8 +320,11 @@ def run():
             cans.remove(i)
 
         if frank.y + frank.img.get_height() >= 710:
-            pygame.quit()
-            quit()
+            draw_win(win, frank, cans, base, score)
+            end_screen()
+
+        if frank.y + frank.img.get_height() <= -6969:
+            easter_egg()
 
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
@@ -236,12 +337,16 @@ def run():
     
         draw_win(win, frank, cans, base, score)
 
+        if score > best:
+            best = score
+
 def main():
     global clock 
     clock = pygame.time.Clock()
-    
+
     start_screen()
     run()
+    
     
     
 
